@@ -1,0 +1,30 @@
+\documentclass{article}
+\usepackage[a4paper,top=3cm,left=3cm,right=3cm,bottom=3cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[pdfpagemode={UseOutlines},bookmarks=true,bookmarksopen=true,
+   bookmarksopenlevel=0,bookmarksnumbered=true,hypertexnames=false,
+   colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+   pdfstartview={FitV},unicode,breaklinks=true]{hyperref}
+\usepackage{graphicx, caption, subcaption, indentfirst, amsmath, pdflscape, rotating}
+\usepackage[titletoc,title]{appendix}
+
+\graphicspath{{images/}}
+\righthyphenmin=12
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1.5ex plus 0.5ex minus 0.2ex}
+
+\title{Laboratory 2 Inverter Layout \& Digital Cells}
+\author{Yubo Zhi (yz4116)}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\input{Inverter}
+
+\input{NAND}
+
+\input{DFF}
+
+\end{document}
