@@ -5,7 +5,9 @@ TRG	= $(SRC:%.tex=%.dvi)
 .PHONY: all
 all: $(PDF)
 
-%.pdf: %.tex
+FORCE:
+
+%.pdf: %.tex FORCE
 	#pdflatex --shell-escape $<
 	#-bibtex $(<:%.tex=%.aux)
 	pdflatex --shell-escape $<
