@@ -1,5 +1,8 @@
 \documentclass[journal]{IEEEtran}
 
+% *** MATH PACKAGES ***
+\usepackage{amsmath,amssymb}
+
 % *** GRAPHICS RELATED PACKAGES ***
 \ifCLASSINFOpdf
 	\usepackage[pdftex]{graphicx}
@@ -21,7 +24,9 @@
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
-\newcommand{\fref}[1]{\figurename \ref{#1}}
+\newcommand{\fref}[1]{\figurename~\ref{#1}}
+\newcommand{\eref}[1]{(\ref{#1})}
+\newcommand{\tref}[1]{\tablename~\ref{#1}}
 
 \begin{document}
 
@@ -136,6 +141,10 @@ The input switches are simply 8 NANDs. The input of capacitor array drives MOSFE
 
 After initial discharge, by having binary-weighted capacitors connected to either VREF or GND, the capacitors will be charged, with output node have a voltage proportional to charge distribution, hence the name "charge-scaling". There are no static current flow in the capacitor array, therefore very power efficient. It is very sensitive to parasitic capacitances, so the capacitors need to be big enough to overcome them.
 
+However, if the capacitor array has not been reset for a long time, the output might drift because of leaking current changes charge distribution on output node. Having a larger unit capacitor might slower this process.
+
+The unit capacitor was determined to be $12 \mu m \times 12 \mu m$, a sensible value for efficient layout area usage and sufficient enough to meet the specifications.
+
 %\fref{fig_cap_sch} shows the actual schematic of capacitor array design, including dummy capacitors.
 
 %\begin{figure}[!t]
@@ -158,34 +167,127 @@ The capacitors are placed in a common centroid configuration, as indicated by th
 
 \subsection{Voltage references}
 
+\fref{fig_ref_sch} shows the schematic of voltage references generation. Since the loads are only capacitors, a simple potential divider should be sufficient for $0.4 V$ output. The output will become stable at the desired voltage after capacitors are charged. The $1.4 V$ is achieved by using an amplifier, which is a 2-stage op amp design from previous laboratory sessions.
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=2.5in]{ref_sch}
+	\caption{Schematic design of voltage references}
+	\label{fig_ref_sch}
+\end{figure}
+
+The outputs are tuned a bit higher than the voltage ranges specified, in order to compensate for gain and offset errors, according to simulation.
+
 \subsection{Output amplifier}
 
-Circuit theory of operation.
+A simple non-inverting amplifier was used as output amplifier. The same 2-stage op amp was used.
 
-Annotated schematics and layout.
+\subsection{Top-level overview}
 
-Discussion of advanced issues considered / addressed and unique features and limitations of your design.
+\fref{fig_top_lay} shows the entire layout design of the DAC. The dimension of the layout is about $200 \mu m \times 132 \mu m$.
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=\columnwidth]{top_lay}
+	\caption{Layout design of the DAC}
+	\label{fig_top_lay}
+\end{figure}
+
+P guarding rings was added around each analogue components to provide better substrate contact and isolation between components. Metal conductors for analogue signals and power tracks were also made thicker, to reduce parasitic resistances.
 
 \section{Simulated Results}
 
-Results and Interpretation / discussion.
+The ring oscillator was simulated by applying a $1.8 V$ supply. It is simulated and tuned separately, because the simulation of the entire DAC module depends on an accurate clock. \fref{fig_sim_osc} shows the transient simulation waveform of the ring oscillator.
 
-Description of the test strategy used and a schematic test bench.
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=\columnwidth]{sim_osc}
+	\caption{Transient simulation of ring oscillator. Red: Waveform on the ring; Blue: Buffered output}
+	\label{fig_sim_osc}
+\end{figure}
 
-Simulation results to demonstrate that the circuit operates as expected.
+The frequency of the ring oscillator was calculated as shown in \eref{eq_freq}. It satisfied the specification of $10 \pm 0.1 MHz$.
+
+\begin{equation}
+	\label{eq_freq}
+	f = \frac{1}{T} \approx \frac{1}{100.2726 ns} \approx 9.973 MHz
+\end{equation}
+
+Simulation of the DAC module was done by using the provided test script. It will test every input codes, output the results as text. Therefore, the results can be easily processed in a spreadsheet application afterwards.
+
+\fref{fig_output} shows the reference and simulation output voltages. There is always a small error exists between them.
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=2.5in]{Output}
+	\caption{Reference and simulation output of the DAC design}
+	\label{fig_output}
+\end{figure}
+
+\fref{fig_error} shows the relative error between DAC output and reference. Relative error was calculated as shown by \eref{eqn_error}.
+
+\begin{equation}
+	\label{eqn_error}
+	ERR_{rel} = abs(Reference - VOUT) / Reference
+\end{equation}
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=2.5in]{Error}
+	\caption{Relative error of the DAC design output}
+	\label{fig_error}
+\end{figure}
+
+It can be seen from the chart that the overall error is not linear. This is affected by parasitic capacitances on MSB side. The parasitic capacitances on LSB side is reflected by small changes in error that repeats every 16 steps.
+
+Voltage references were tuned to move the error curve centred around zero, gives the minimum absolute relative error.
+
+The relative error can be further reduced by increasing the unit capacitance, so that the parasitic capacitances will become more insignificant. However, this will increase the layout area, and since the design already meet the specification of less than $1.5 \%$, the capacitors were not changed.
+
+The test script also gives power consumption values. These can be calculated by measuring the current supplied by the $1.8 V$ power source. The static power consumption of this design is $5.2246 mW$, and the dynamic power consumption is $5.0504 mW$. It satisfied the specification of less than $20 mW$.
+
+\fref{fig_sim_dac} shows a fraction of transient simulation for the DAC. It shows the time between the rising edge of enable signal and output stable is about $921 ns$, approximately $1.08 MHz$, meets the specification of at least $500 kHz$.
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=\columnwidth]{sim_dac}
+	\caption{Transient simulation of the DAC design}
+	\label{fig_sim_dac}
+\end{figure}
 
 \section{Conclusion}
 
-Table of technical specifications.
+The capacitor based charge scaling DAC design successfully meets all design specifications.
+
+\tref{tbl_spec} shows the specification of this DAC design.
+
+\begin{table}[!t]
+	% increase table row spacing, adjust to taste
+	\renewcommand{\arraystretch}{1.3}
+	\caption{Technical specification}
+	\label{tbl_spec}
+	\centering
+	% Some packages, such as MDW tools, offer better commands for making tables
+	% than the plain LaTeX2e tabular which is used here.
+	\begin{tabular}{lll}
+		\hline
+		Specification		& Value		& Unit		\\
+		\hline
+		Total silicon area	& 0.0264	& $mm^2$	\\
+		Power supply		& 1.8		& $V$		\\
+		Power dissipation	& 5.2246	& $mW$		\\
+		Output clock frequency	& 9.973		& $MHz$		\\
+		Conversion rate		& 1000		& $kHz$		\\
+		Output voltage range	& 0.4 - 1.4	& $V$		\\
+		Load impedance for VOUT	& 10k // 10	& $\Omega$ // $pF$\\
+		Relative error		& $\leqslant$ 1.1	& \%		\\
+		\hline
+	\end{tabular}
+\end{table}
 
 % references section
-\begin{thebibliography}{1}
-
-\bibitem{IEEEhowto:kopka}
-H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
-
-\end{thebibliography}
+\bibliographystyle{IEEEtran}
+\bibliography{Reference}
 
 % that's all folks
 \end{document}
